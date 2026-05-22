@@ -160,6 +160,7 @@ def register_routes(app: Flask) -> None:
             if not title:
                 flash("El título es obligatorio.", "error")
             else:
+                # No armamos consultas pegando texto del usuario.
                 db = get_db()
                 db.execute(
                     "INSERT INTO tasks (owner_id, title, note) VALUES (?, ?, ?)",
@@ -236,12 +237,14 @@ def get_current_user() -> sqlite3.Row | None:
 
 
 def require_admin() -> None:
+    # Solo los administradores pueden entrar a esta pantalla.
     current_user = get_current_user()
     if current_user is None or current_user["role"] != "admin":
         abort(403)
 
 
 def login_required(view):
+    # Pequeño control para que no entren usuarios sin iniciar sesión.
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if session.get("user_id") is None:
@@ -252,10 +255,12 @@ def login_required(view):
 
 
 def internal_server_time() -> str:
+    # Devuelve la hora del servidor sin ejecutar nada externo.
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 DIAGNOSTIC_CHECKS = {
+    # Opciones permitidas para el diagnóstico. Nada más.
     "server_time": internal_server_time,
     "app_status": lambda: "ok",
 }
