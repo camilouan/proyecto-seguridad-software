@@ -46,6 +46,7 @@ def test_login_rejects_sql_injection_payload(client):
 
 
 def test_diagnostics_rejects_non_allowlisted_input(client):
+    # Aquí se comprueba que no entren valores que no están permitidos.
     login(client)
 
     response = client.get("/diagnostics?check=whoami")
@@ -55,6 +56,7 @@ def test_diagnostics_rejects_non_allowlisted_input(client):
 
 
 def test_task_notes_are_escaped_on_listing(client):
+    # El texto guardado por el usuario debe verse como texto normal.
     login(client)
 
     response = client.post(

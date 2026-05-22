@@ -37,8 +37,9 @@
       <tbody>
         {% for task in tasks %}
           <tr>
-            <td>{{ task.title }}</td>
-            <td>{{ task.note }}</td>
+            <!-- Se muestra como texto para que nada raro se ejecute aquí. -->
+            <td>{{ task.title | e }}</td>
+            <td>{{ task.note | e }}</td>
             <td>{{ task.created_at }}</td>
           </tr>
         {% endfor %}
