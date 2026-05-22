@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h2>Nueva tarea</h2>
+      <p class="meta">Los campos se guardan con consultas parametrizadas.</p>
+    </div>
+    <a class="button secondary" href="{{ url_for('tasks') }}">Volver</a>
+  </div>
+
+  <form method="post">
+    <label>
+      Título
+      <input type="text" name="title" maxlength="120" required>
+    </label>
+
+    <label>
+      Nota
+      <textarea name="note" maxlength="2000" placeholder="Escribe el detalle de la tarea"></textarea>
+    </label>
+
+    <button type="submit">Guardar</button>
+  </form>
+{% endblock %}

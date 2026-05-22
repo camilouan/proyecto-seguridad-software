@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h2>Listado de tareas</h2>
+      <p class="meta">Usuario activo: {{ current_user.username }} · Rol: {{ current_user.role }}</p>
+    </div>
+
+    <div class="nav-links">
+      <a class="button secondary" href="{{ url_for('new_task') }}">Nueva tarea</a>
+      {% if current_user.role == 'admin' %}
+        <a class="button secondary" href="{{ url_for('diagnostics') }}">Diagnóstico</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="get" class="grid two" style="margin-bottom: 1rem;">
+    <label>
+      Buscar
+      <input type="text" name="q" value="{{ search_term }}" placeholder="Filtra por título o nota">
+    </label>
+    <div style="align-self: end;">
+      <button type="submit">Aplicar filtro</button>
+    </div>
+  </form>
+
+  {% if tasks %}
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Nota</th>
+          <th>Creada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>{{ task.title }}</td>
+            <td>{{ task.note }}</td>
+            <td>{{ task.created_at }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">No hay tareas para mostrar.</div>
+  {% endif %}
+{% endblock %}

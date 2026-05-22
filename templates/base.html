@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or 'Proyecto OWASP' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="page-shell">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Mini app OWASP</h1>
+          <p>Login, formulario, listado y hardening aplicado contra inyecciones.</p>
+        </div>
+        {% if current_user %}
+          <form method="post" action="{{ url_for('logout') }}">
+            <button type="submit" class="secondary">Cerrar sesión</button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="alerts">
+            {% for category, message in messages %}
+              <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <section class="panel">
+        <div class="panel-inner">
+          {% block content %}{% endblock %}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

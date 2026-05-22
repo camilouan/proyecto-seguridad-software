@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="grid two">
+    <div>
+      <span class="pill">Acceso controlado</span>
+      <h2>Inicia sesión</h2>
+      <p class="meta">Las credenciales se validan con consultas parametrizadas y contraseñas hasheadas.</p>
+    </div>
+
+    <form method="post">
+      <label>
+        Usuario
+        <input type="text" name="username" autocomplete="username" required>
+      </label>
+
+      <label>
+        Contraseña
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+{% endblock %}

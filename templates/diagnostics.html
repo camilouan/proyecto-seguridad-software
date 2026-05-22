@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="toolbar">
+    <div>
+      <h2>Diagnóstico administrativo</h2>
+      <p class="meta">La comprobación se elige con una allowlist interna, sin pasar texto libre al sistema operativo.</p>
+    </div>
+    <a class="button secondary" href="{{ url_for('tasks') }}">Volver</a>
+  </div>
+
+  <p><strong>Chequeo:</strong> {{ check_name }}</p>
+  <p><strong>Resultado:</strong> {{ result }}</p>
+{% endblock %}
