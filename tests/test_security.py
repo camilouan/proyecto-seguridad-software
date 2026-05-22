@@ -7,6 +7,7 @@ from app import create_app, init_db
 
 @pytest.fixture()
 def app(tmp_path):
+    # Se crea una app aparte para que las pruebas no toquen la base real.
     database_path = tmp_path / "test.db"
     app = create_app(
         {
@@ -26,6 +27,7 @@ def client(app):
 
 
 def login(client, username: str = "admin", password: str = "Admin123!"):
+    # Ayuda para iniciar sesión igual que lo haría una persona desde el navegador.
     return client.post(
         "/login",
         data={"username": username, "password": password},
@@ -34,6 +36,7 @@ def login(client, username: str = "admin", password: str = "Admin123!"):
 
 
 def test_login_rejects_sql_injection_payload(client):
+    # Este intento raro de login debe fallar.
     response = login(client, username="admin' OR '1'='1", password="anything")
     body = response.get_data(as_text=True)
 

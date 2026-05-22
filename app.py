@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def create_app(test_config: dict | None = None) -> Flask:
+    # Aquí se arma la app y se deja lista para usarla también en pruebas.
     app = Flask(__name__)
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-change-me"),
@@ -31,6 +32,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
 
 def register_db_hooks(app: Flask) -> None:
+    # Al final de cada petición, se cierra la conexión para no dejarla abierta.
     @app.teardown_appcontext
     def close_db(exception: Exception | None) -> None:
         db = g.pop("db", None)
@@ -39,6 +41,7 @@ def register_db_hooks(app: Flask) -> None:
 
 
 def get_db() -> sqlite3.Connection:
+    # Se abre la base solo cuando hace falta y se usa la configuración actual.
     if "db" not in g:
         connection = sqlite3.connect(current_app.config["DATABASE"])
         connection.row_factory = sqlite3.Row
@@ -47,6 +50,7 @@ def get_db() -> sqlite3.Connection:
 
 
 def init_db() -> None:
+    # Si la base está vacía, se crean las tablas y se cargan datos de ejemplo.
     db = get_db()
     db.executescript(
         """
@@ -70,6 +74,7 @@ def init_db() -> None:
 
     user_count = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
     if user_count == 0:
+        # Las contraseñas se guardan con hash, nunca en texto plano.
         db.execute(
             "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
             ("admin", generate_password_hash("Admin123!"), "admin"),
@@ -93,10 +98,12 @@ def init_db() -> None:
 
 
 def register_routes(app: Flask) -> None:
+    # Dejamos el usuario actual disponible en todas las vistas.
     @app.context_processor
     def inject_user() -> dict[str, object | None]:
         return {"current_user": get_current_user()}
 
+    # La página principal manda al lugar que más sentido tiene.
     @app.get("/")
     def index() -> object:
         if session.get("user_id"):
@@ -105,6 +112,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/login", methods=["GET", "POST"])
     def login() -> object:
+        # El inicio de sesión valida datos sin mezclar texto del usuario en la consulta.
         if request.method == "POST":
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
@@ -113,6 +121,7 @@ def register_routes(app: Flask) -> None:
             if user is None:
                 flash("Credenciales inválidas.", "error")
             else:
+                # Limpiamos la sesión anterior antes de entrar con otra cuenta.
                 session.clear()
                 session["user_id"] = user["id"]
                 flash(f"Bienvenido, {user['username']}.", "success")
@@ -122,6 +131,7 @@ def register_routes(app: Flask) -> None:
 
     @app.post("/logout")
     def logout() -> object:
+        # Cerrar sesión solo borra los datos de la sesión actual.
         session.clear()
         flash("Sesión cerrada.", "success")
         return redirect(url_for("login"))
@@ -129,6 +139,7 @@ def register_routes(app: Flask) -> None:
     @app.get("/tasks")
     @login_required
     def tasks() -> object:
+        # Aquí se muestran solo las tareas del usuario que entró.
         search_term = request.args.get("q", "").strip()
         task_list = list_tasks(search_term)
         return render_template(
@@ -141,6 +152,7 @@ def register_routes(app: Flask) -> None:
     @app.route("/tasks/new", methods=["GET", "POST"])
     @login_required
     def new_task() -> object:
+        # Este formulario guarda una nueva tarea sin confiar en lo que escriba el usuario.
         if request.method == "POST":
             title = request.form.get("title", "").strip()
             note = request.form.get("note", "").strip()
@@ -162,6 +174,7 @@ def register_routes(app: Flask) -> None:
     @app.get("/diagnostics")
     @login_required
     def diagnostics() -> object:
+        # Esta parte queda solo para admin y solo acepta opciones permitidas.
         require_admin()
         check_name = request.args.get("check", "server_time")
         if check_name not in DIAGNOSTIC_CHECKS:
@@ -171,6 +184,7 @@ def register_routes(app: Flask) -> None:
 
 
 def authenticate_user(username: str, password: str) -> sqlite3.Row | None:
+    # Buscamos el usuario de forma segura y comparamos la contraseña con hash.
     if not username or not password:
         return None
 
@@ -186,6 +200,7 @@ def authenticate_user(username: str, password: str) -> sqlite3.Row | None:
 
 
 def list_tasks(search_term: str) -> list[sqlite3.Row]:
+    # El filtro se aplica solo a las tareas del usuario y sin sorpresas raras.
     db = get_db()
     current_user = get_current_user()
     if current_user is None:
@@ -205,10 +220,12 @@ def list_tasks(search_term: str) -> list[sqlite3.Row]:
 
 
 def escape_like(value: str) -> str:
+    # Escapamos los símbolos especiales para que el filtro no cambie de más.
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def get_current_user() -> sqlite3.Row | None:
+    # Sacamos el usuario actual desde la sesión, si existe.
     user_id = session.get("user_id")
     if user_id is None:
         return None
